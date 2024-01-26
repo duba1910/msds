@@ -10,7 +10,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 ## Intro:
 
-
+As concerns around gun violence escalate, we're delving into the NYPD Shooting Incident data to crunch the numbers and uncover patterns. The goal here is to get a grip on what's happening, without getting bogged down in the larger societal debate. By sifting through the data, our aim is to spotlight trends and relationships that can be useful for law enforcement strategies. This report cuts to the chase, focusing on the nitty-gritty of the NYPD Shooting Incident data to provide insights that can help shape practical policies and tactics.
 
 Step 1: Install `tidyverse` and `lubridate` which are the packages I'll need to preform my analysis
 
@@ -183,5 +183,5 @@ ggplot(std_res_df, aes(x = Borough, y = Freq, fill = VIC_AGE_GROUP)) +
   
 ```
 
-Step 19: Bias Identification
+Final thoughts - bias reduction: Recognizing the influence of personal perspectives is crucial in analyzing the NYPD Shooting Incident data. The choice to explore this dataset is not devoid of potential biases, as personal experiences and predispositions can shape the framing of questions and interpretation of results. Additionally, the selection of specific variables for scrutiny may inadvertently reflect certain viewpoints. To counteract these biases, a conscious effort will be made to approach the analysis with an open mind, considering alternative perspectives and remaining vigilant about the potential impact of preconceived notions on the interpretation of the data. The aim is to conduct a nuanced and fair analysis, acknowledging and mitigating biases to ensure the reliability and objectivity of the findings.
 
