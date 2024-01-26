@@ -1,0 +1,308 @@
+---
+title: "Week 3 - Covid Analysis"
+author: "Dustin Baellow"
+date: "`r Sys.Date()`"
+output: pdf_document
+---
+
+Intro: The 
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning=FALSE)
+```
+
+Step 1: Install `tidyverse` and `lubridate` which are the packages I'll need to preform my analysis
+
+```{r install_packages, message = FALSE}
+library(tidyverse)
+library(lubridate)
+```
+
+Step 2: Load in the data
+
+```{r load_in_data}
+url_in <-
+  "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/"
+
+file_names <-
+  c(
+    "time_series_covid19_confirmed_US.csv",
+    "time_series_covid19_confirmed_global.csv",
+    "time_series_covid19_deaths_US.csv",
+    "time_series_covid19_deaths_global.csv",
+    "UID_ISO_FIPS_LookUp_Table.csv"
+  )
+
+urls <- str_c(url_in, file_names)
+```
+
+Step 3: Import the data using `read_csv`
+
+```{r import_data, message = FALSE}
+us_cases <- read_csv(urls[1])
+global_cases <- read_csv(urls[2])
+us_deaths <- read_csv(urls[3])
+global_deaths <- read_csv(urls[4])
+uid <-
+  read_csv(
+    "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/UID_ISO_FIPS_LookUp_Table.csv"
+  )
+```
+
+Step 5: Pivot the global data by date. Then join the cases and deaths tables together. Lastly, join with our UID table to get population.
+
+```{r tidy_global_data, message = FALSE}
+global_cases <- global_cases %>%
+  pivot_longer(
+    cols = -c(`Province/State`, `Country/Region`, Lat, Long),
+    names_to = "date",
+    values_to = "cases"
+  ) %>%
+  select(-c(Lat, Long))
+
+global_deaths <- global_deaths %>%
+  pivot_longer(
+    cols = -c(`Province/State`, `Country/Region`, Lat, Long),
+    names_to = "date",
+    values_to = "deaths"
+  ) %>%
+  select(-c(Lat, Long))
+
+global <- global_cases %>%
+  full_join (global_deaths) %>%
+  rename(Country_Region = `Country/Region`,
+         Province_State = `Province/State`) %>%
+  mutate(date = mdy(date)) %>%
+  filter(cases > 0)
+
+global <- global %>%
+  left_join(uid, by = c("Province_State", "Country_Region")) %>%
+  select(-c(UID, FIPS)) %>%
+  select(Province_State,
+         Country_Region,
+         date,
+         cases,
+         deaths,
+         Population,
+         Combined_Key)
+```
+
+Step 6: Take a peek at the new global table
+
+```{r global}
+summary(global)
+head(global)
+```
+
+Step 7: Pivot the US data. Then join them together
+
+```{r tidy_us_data, message = FALSE}
+us_cases <- us_cases %>%
+  pivot_longer(
+    cols = -c(UID:Combined_Key),
+    names_to = "date",
+    values_to = "cases"
+  ) %>%
+  select(Admin2:cases) %>%
+  mutate(date = mdy(date)) %>%
+  select(-c(Lat, Long_))
+
+us_deaths <- us_deaths %>%
+  pivot_longer(
+    cols = -c(UID:Population),
+    names_to = "date",
+    values_to = "deaths"
+  ) %>%
+  select(Admin2:deaths) %>%
+  mutate(date = mdy(date)) %>%
+  select(-c(Lat, Long_))
+
+us <- us_cases %>%
+  full_join (us_deaths) 
+```
+
+Step 7: Take a peek at the new US table
+
+```{r summary_us}
+summary(us)
+head(us)
+```
+
+Step 8: Great a US by state table to get deaths per million
+
+```{r us_by_state, message = FALSE}
+us_by_state <- us %>%
+  group_by (Province_State, Country_Region, date) %>%
+  summarize (
+    cases = sum(cases),
+    deaths = sum(deaths),
+    Population = sum(Population)
+  ) %>%
+  mutate(deaths_per_mill = deaths * 1000000 / Population) %>%
+  select (Province_State,
+          Country_Region,
+          date,
+          cases,
+          deaths,
+          deaths_per_mill,
+          Population) %>%
+  ungroup()
+```
+
+Step 9: create a us_totals table to get deaths per million in the entire country
+
+```{r us_totals, message = FALSE}
+us_totals <- us_by_state %>%
+  group_by (Country_Region, date) %>%
+  summarize (
+    cases = sum(cases),
+    deaths = sum(deaths),
+    Population = sum(Population)
+  ) %>%
+  mutate(deaths_per_mill = deaths * 1000000 / Population) %>%
+  select (Country_Region,
+          date,
+          cases,
+          deaths,
+          deaths_per_mill,
+          Population) %>%
+  ungroup()
+```
+
+Step 10: Visualize the US totals to see how deaths and cases rose over time. We're using a log10 scale so the deaths and cases will not be too far apart. We find the deaths and cases rose very quickly through the first half of 2021, and seem to have leveled out since.
+
+```{r vizualize_us_totals}
+us_totals %>%
+  filter(cases > 0) %>%
+  ggplot(aes(x = date, y = cases)) +
+  geom_line(aes(color = "cases")) +
+  geom_point(aes(color = "cases")) +
+  geom_line(aes(y = deaths, color = "deaths")) +
+  geom_point(aes(y = deaths, color = "deaths")) +
+  scale_y_log10() +
+  theme(legend.position = "bottom",
+        axis.text.x = element_text(angle = 90)) +
+  labs(title = "COVID19 in US", y = NULL)
+```
+
+Step 11: Visualize the NY state totals. Since NY is the 4th largest state by population, the graph looks very similar to the US graph. But, we do notice a pretty significant (even with the log scale) bump in cases in the beginning of 2022 which is probably due to the Omicron variant.
+
+```{r vizualize_ny_totals}
+state <- "New York"
+us_by_state %>%
+  filter(Province_State == state) %>%
+  filter(cases > 0) %>%
+  ggplot(aes(x = date, y = cases)) +
+  geom_line(aes(color = "cases")) +
+  geom_point(aes(color = "cases")) +
+  geom_line(aes(y = deaths, color = "deaths")) +
+  geom_point(aes(y = deaths, color = "deaths")) +
+  scale_y_log10() +
+  theme(legend.position = "bottom",
+        axis.text.x = element_text(angle = 90)) +
+  labs(title = str_c("COVID19 in ", state), y = NULL)
+```
+
+Step 12: After a while, when the cases and deaths keep increasing, it's hard to comprehend what is happening daily. We can add two new columns in our tables to show the changes in cases and deaths from the previous day.
+
+```{r change_in_cases}
+us_by_state <- us_by_state %>%
+  mutate(new_cases = cases - lag(cases),
+         new_deaths = deaths - lag(deaths))
+us_totals <- us_totals %>%
+  mutate(new_cases = cases - lag(cases),
+         new_deaths = deaths - lag(deaths))
+```
+
+Step 13: Now we can visualize the change in cases and deaths in the US. This now clearly shows the increase in cases at the end of 2022 due to Omicron. We can also see how the Omicron variant did not cause a similar increase in deaths.
+
+```{r visualize_us_new_cases_deaths}
+us_totals %>%
+  filter(cases > 0) %>%
+  ggplot(aes(x = date, y = new_cases)) +
+  geom_line(aes(color = "new_cases")) +
+  geom_point(aes(color = "new_cases")) +
+  geom_line(aes(y = new_deaths, color = "new_deaths")) +
+  geom_point(aes(y = new_deaths, color = "new_deaths")) +
+  scale_y_log10() +
+  theme(legend.position = "bottom",
+        axis.text.x = element_text(angle = 90)) +
+  labs(title = "COVID19 in US", y = NULL)
+```
+
+Step 14: Let's now visualize the california change in cases and deaths. Since it's a single state, the changes are more prevalent. We also start to see where there are no new deaths as we get in 2023
+
+```{r vizualize_ca_totals}
+state <- "California"
+us_by_state %>%
+  filter(Province_State == state) %>%
+  filter(cases > 0) %>%
+  ggplot(aes(x = date, y = new_cases)) +
+  geom_line(aes(color = "new_cases")) +
+  geom_point(aes(color = "new_cases")) +
+  geom_line(aes(y = new_deaths, color = "new_deaths")) +
+  geom_point(aes(y = new_deaths, color = "new_deaths")) +
+  scale_y_log10() +
+  theme(legend.position = "bottom",
+        axis.text.x = element_text(angle = 90)) +
+  labs(title = str_c("COVID19 in ", state), y = NULL)
+```
+
+Step 15: Now we can see which states have the most cases and deaths overall, and then look at the cases and deaths per thousand people
+
+```{r us_state_totals}
+us_state_totals <- us_by_state %>%
+  group_by(Province_State) %>%
+  summarize(
+    deaths = max(deaths),
+    cases = max(cases),
+    population = max(Population),
+    cases_per_thou = 1000 * cases / population,
+    deaths_per_thou = 1000 * deaths / population
+  ) %>%
+  filter(cases > 0, population > 0)
+```
+
+Step 16: Just to make sure the data looks ok, we'll look at the states with the smallest deaths per thousand. 
+
+```{r slice_min_state_totals}
+us_state_totals %>%
+  slice_min(deaths_per_thou, n = 10) %>%
+  select(deaths_per_thou, cases_per_thou, everything())
+```  
+
+Step 17: We can also look at the largest states by deaths per thousand. 
+
+```{r slice_max_state_totals}
+us_state_totals %>% 
+  slice_max(deaths_per_thou, n = 10)%>%
+  select(deaths_per_thou, cases_per_thou, everything())
+```  
+
+Step 18: Now we can model the data. I chose a linear model to see how the well my deaths per thousand are predicted by the cases per thousand. The P Value is super low which is great, but the rsquared is not too high. 
+
+
+```{r linear_model}
+mod <- lm(deaths_per_thou ~ cases_per_thou, data = us_state_totals)
+summary(mod)
+```
+Step 19: Lets graph it and see what it looks like. The blue dots (the actuals) do go up and to the right like the red dots (prediction), but there are a lot of variance and residuals. Comparing to the videos in class from early 2021, I would attribute this a lot to the prevalence of vaccinations and treatments. As cases went up early in the pandemic, deaths followed closely behind because there was no treatments and nobody was vaccinated. But now, vaccination rates are high and the treatments are readily available, so getting infected does not mean death.
+
+
+``` {r graph_linear_model}
+us_state_totals_w_pred <-
+  us_state_totals %>% mutate(pred = predict(mod))
+us_state_totals_w_pred %>%
+  ggplot() +
+  geom_point(aes(x = cases_per_thou, y = deaths_per_thou), color = "blue") +
+  geom_point(aes(x = cases_per_thou, y = pred), color = "red")
+```
+
+
+Step 20: 
+
+Your bias sources even start with what topic you chose to work on, because if you didn't choose this topic right, then you wouldn't have any feelings about it. But because you chose this topic is clearly of interest to you and you have some sort of feelings about the topic.
+They even extend to, what are the variables that you measure? Right? We saw this with our COVID 19 analysis. We were looking at cases, total cases, total deaths. Then we started looking at deaths per 1000 or deaths per million. And then we were looking at total new cases. So it's different depending on the variables that you're measured. How were they measured? Do we need to look at how the each of the variables was measured to see how accurate our results are going to be? If you do a survey, it's in the phrasing of the question right on how you ask someone even what kind of clothing you're wearing when you ask, How are you? How are you getting your survey sample? All of these things, who, you ask, who asks the question. Those all contribute to bias in your data. How do you handle outliers? Do you just ignore them? Should you look to see what's behind those? Because a lot of times the most interesting data is in your outliers.
+now bias is not necessarily a bad thing. Fear keeps us alive, and we tend to be afraid of people in situations that are different from what we're used to. This is a survival mechanism that we have. So just because you're biased, everyone is biased. Okay, the thing is to recognize your bias and then figure out how to mitigate your bias. So when you're doing a data analysis, what you need to do is recognize what your bias is. What is your bias that you're coming into the data set into the data analysis with and how can you set that aside and try to put on the opposite hat? So if you're doing a political analysis, for instance, if you tend to be more left centered, then you probably want to put on a more right centered approach as you're looking at your data and analyzing your data. So whatever position you come from, try to look at it from the other point of view at your data from that point of view so that you can come out with a fairly unbiased result.
+
+

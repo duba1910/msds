@@ -1,0 +1,187 @@
+---
+title: "NYPD Shooting Incident Analysis"
+author: "Dustin Baellow"
+date: "`r Sys.Date()`"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+## Intro:
+
+
+
+Step 1: Install `tidyverse` and `lubridate` which are the packages I'll need to preform my analysis
+
+```{r install_packages, message = FALSE}
+library(tidyverse)
+library(lubridate)
+```
+
+Step 2: Read the data
+
+```{r read_csv, message = FALSE}
+shooting_incident <-
+  read_csv(
+    "https://data.cityofnewyork.us/api/views/833y-fsy8/rows.csv?accessType=DOWNLOAD"
+  )
+```
+
+Step 3: Check out first 6 rows
+
+```{r head}
+head(shooting_incident)
+```
+
+Step 4: Lets take a look at the summary of the dataframe
+
+```{r summary}
+summary(shooting_incident)
+```
+
+Step 5: Looks like the `OCCUR_DATE` is a character, lets try to change it to a date in a new column called `OCCUR_DATE_LUBRIDATE`
+
+```{r lubridate_occur_date}
+shooting_incident <- shooting_incident %>%
+  mutate(OCCUR_DATE_LUBRIDATE = mdy(OCCUR_DATE)) 
+```
+
+Step 6: Confirm the date changes worked
+
+```{r compare_dates}
+summary(shooting_incident$OCCUR_DATE)
+summary(shooting_incident$OCCUR_DATE_LUBRIDATE)
+```
+
+Step 7: It worked! Lets remove the old `OCCUR_DATE` and rename `OCCUR_DATE_LUBRIDATE` to `OCCUR_DATE`
+
+```{r remove_old_date}
+shooting_incident <- shooting_incident %>%
+  select(-c(OCCUR_DATE)) %>%
+  rename(OCCUR_DATE = OCCUR_DATE_LUBRIDATE)
+
+```
+
+Step 8: take a look to see how the `VIC_AGE_GROUP`s are allocated
+```{r age_group_summary}
+shooting_incident %>%
+  group_by(VIC_AGE_GROUP) %>%
+  summarise(Total = n()) %>%
+  arrange(desc(Total))
+```
+
+Step 9: There could be some funky values (1022 is obviously an error) so lets only include the values that are good. (I could exclude 1022, but I want to make sure I also exclude other "fat-fingered" values in the future, so I'll make it an include rather than exclude function)
+
+```{r filter_bad_vic}
+shooting_incident <- shooting_incident %>%
+  filter(VIC_AGE_GROUP %in% c("25-44", "18-24", "<18", "45-64", "65+", "UNKNOWN"))
+```
+
+Step 10: Check to make sure that looks better
+
+```{r check_vics_again}
+shooting_incident %>%
+  group_by(VIC_AGE_GROUP) %>%
+  summarise(Total = n()) %>%
+  arrange(desc(Total))
+```
+Step 11: I think I'll want to sort them as well, so lets rename them
+
+```{r change_vic_group_names}
+shooting_incident <- shooting_incident %>%
+  mutate(
+    VIC_AGE_GROUP = case_when(
+      VIC_AGE_GROUP == "<18" ~ "1. <18",
+      VIC_AGE_GROUP == "18-24" ~ "2. 18-24",
+      VIC_AGE_GROUP == "25-44" ~ "3. 25-44",
+      VIC_AGE_GROUP == "45-64" ~ "4. 45-64",
+      VIC_AGE_GROUP == "65+" ~ "5. 65+"
+    )
+  )
+
+```
+
+Step 12: Check to make sure that looks better
+
+```{r check_new_vic_alignments}
+shooting_incident %>%
+  group_by(VIC_AGE_GROUP) %>%
+  summarise(Total = n()) %>%
+  arrange(VIC_AGE_GROUP)
+```
+
+Step 13: Create a stacked bar chart
+
+
+```{r stacked_bar_chart}
+ggplot(shooting_incident, aes(fill = VIC_AGE_GROUP, x = BORO)) +
+  geom_bar(position = "stack", stat = "count") +
+  geom_text(
+    stat = 'count',
+    aes(label = after_stat(count), group = VIC_AGE_GROUP),
+    position = position_stack(vjust = 0.5)
+  ) +
+  labs(title = "Stacked Bar Chart",
+       x = "Borough",
+       y = "Count") +
+  theme_minimal()
+```
+
+Step 14: That's a little hard to understand since the populations of the borough are pretty varied. lets make a stacked percent bar char to see if that helps
+
+
+```{r stacked_percent_bar_chart}
+shooting_incident %>%
+  count(BORO, VIC_AGE_GROUP) %>%
+  group_by(BORO) %>%
+  mutate(pct = prop.table(n) * 100) %>%
+  ggplot(aes(fill = VIC_AGE_GROUP, x = BORO, y = pct)) +
+  geom_col(position = "fill") +
+  labs(title = "Stacked Percent Bar Chart",
+       x = "Borough",
+       y = "Count") +
+  geom_text(aes(label = paste0(sprintf("%1.1f", pct), "%")), position = position_fill(vjust = 0.5)) +
+  theme_minimal()
+
+```
+
+Step 15: We can see that as a % of all victims in the boroughs, 18-24 year olds make up a smaller % in Manhattan than the other boroughs, and 25-44 year-olds make up a smaller % in the Bronx, but I want to create a model to see if that is statistically significant. In order to do that, I want to preform a chi-squared test of homogeneity. To start, I need to create a contingency table
+
+```{r contingency_table }
+contingency_table <-
+  table(shooting_incident$BORO, shooting_incident$VIC_AGE_GROUP)
+print(contingency_table)
+```
+Step 16: Now I can run the chi-squared test using `chisq.test`
+```{r chi_squared }
+chi_squared_test <- chisq.test(contingency_table)
+print(chi_squared_test)
+```
+
+Step 17: The P value is super low! Lets dig into standardized residuals see where the biggest offenders are.
+
+```{r standardized_residuals}
+chi_squared_test$stdres
+```
+Step 18: Lets graph the standard residual. But first we need to turn it into a data frame, and change the column names
+
+
+```{r dataframe_std_res}
+std_res_df <- as.data.frame(chi_squared_test$stdres) %>%
+  rename(Borough = Var1,
+         VIC_AGE_GROUP = Var2)
+```
+
+Step 19: now we can graph it. We can no clearly see <18 year-olds in the Queens are less likely to be victims, while in the Bronx, anyone less than 24 is more likely. 
+```{r graph_srd_res}
+ggplot(std_res_df, aes(x = Borough, y = Freq, fill = VIC_AGE_GROUP)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "Standardized Residuals for Each Combination",
+       y = "Standardized Residual")  +
+  theme_minimal()
+  
+```
+
+Step 19: Bias Identification
+
