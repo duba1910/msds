@@ -1,0 +1,68 @@
+---
+title: "Module 2 Assessment"
+output: pdf_document
+---
+
+### Problem 2
+
+Suppose a particular crime is committed in Jerry’s apartment. We’d like to know whether Newman is guilty of the crime. We are torn as to whether we think he is guilty: we think it’s equally likely that he is guilty or not guilty. Suppose that, in similar situations, we know that if a suspect is guilty, 85% of the time their finger prints are found at the scene, and, we know that if a suspect is not guilty, 30% of the time their finger prints are found at the scene.
+
+**a)**  What is the probability that Newman’s finger prints are found at the scene? Round your answer to three decimal places. Enter your solution into variable p2.1.
+
+
+```{r}
+p_a <- .5
+p_a_comp <- 1-p_a
+p_b_given_a <- .85
+p_b_given_a_comp <- .3
+p_b <- p_b_given_a*p_a + p_b_given_a_comp*p_a_comp
+p2.1 = round(p_b, 3)
+```
+
+**b)**  If Newman’s finger prints are found at the scene, how likely is it that he is guilty? Round your answer to three decimal places. Enter your solution into variable p2.2.
+
+```{r}
+p_a_given_b <- (p_b_given_a*p_a)/p_b
+p2.2 = round(p_a_given_b, 3)
+```
+
+**c)** If Newman’s finger prints are not found at the scene, how likely is it that he is guilty? Round your answer to three decimal places. Enter your answer into variable p2.3.
+
+```{r}
+p2.3 = 0
+```
+
+### Problem 3
+
+The game of Yahtzee is played with five fair dice. The goal is to roll certain
+‘hands’, such as Yahtzee (all five dice showing the same number) or a full house
+(three of a kind and two of a kind). In the first round of a player’s turn, the player
+rolls all five dice. Based on the outcome of that roll, the player has a second and
+third round, where he/she can then choose to re-roll any subset of the dice to get
+a desired hand.
+
+**a)** What is the probability of rolling a Yahtzee (all 5 dice showing the same number) on the first round? Round your answer to 4 decimal places. Enter your answer into variable `p3.1`.
+
+
+```{r}
+p3.1 = 6/(6^5)
+```
+
+**b)** Suppose that, on the second round, the dice are {2, 3, 4, 6, 6}. You decide to
+re-roll both sixes in the third round. What is the probability that you roll
+either a small straight (exactly four dice are in a row) or a large straight (exactly five
+dice are in a row)? Round your answer to three decimal places. Enter your solution into variable `p3.2`. (Note that to be "in a row" means that the dice come up with numbers that could be arranged in a row. Examples of exactly 5 numbers in a row are "1,2,3,4,5" or  "2,3,4,5,6". You may want to look up small and large straights in Yhatzee if you are unfamilar with the game or confused by this terminology).
+
+
+```{r}
+p3.2 = round(20/36,3)
+```
+
+**c)** What is the probability of rolling a
+small straight (exactly four dice in a row) on the first round? Round your answer to have three decimal places. Enter your solution into variable `p3.3`.
+
+
+```{r}
+# prob 4 in a row - prob 5 in a row - prob 6 in a row?
+p3.3 = 0
+```

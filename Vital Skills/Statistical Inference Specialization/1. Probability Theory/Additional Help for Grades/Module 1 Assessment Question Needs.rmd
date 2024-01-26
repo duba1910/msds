@@ -1,0 +1,55 @@
+---
+title: "Module 1 Assessment"
+output: pdf_document
+---
+
+### Problem 3
+
+Suppose there are 20 employees on the day shift, 15 on swing, and 10 on nights. You would like to choose 6 at random for an in-depth interview. Let A1  be the event that all 6 are chosen from the day shift,  A2  be the event that all  6  are chosen from the swing shift, and A3 the event that all 6 are chosen from the night shift.
+
+**a)** What is the cardinality of the sample space (the drawing of 6 employees from all shifts)? Assume each employee is unique. Think about what each element, or possible outcome, in the sample space represents.
+
+
+```{r}
+day <- 20
+swing <- 15
+night <- 10
+total <- day + swing + night
+sample <- 6
+Size = choose(total, sample)
+```
+
+**b)** Assuming that each employee is chosen with equal probaiblity, what is the probability that all 6 chosen employees work the day shift? Note that the employees are chosen sequentially, not all at once. Round your answer to 5 decimal places. Save your answer as P_AllDay.
+
+
+```{r}
+P_AllDay = round((choose(day, sample)*choose(swing,0)*choose(night,0))/Size, 5)
+```
+
+**c)** What is the probability that all 6 workers are selected from the same shift? Again, assume the employees are selected sequentially and not all at once. Round your answer to four decimal places. Save your answer as P_AllSame.
+
+
+```{r}
+P_AllSame = round(((choose(day, sample)*choose(swing,0)*choose(night,0))/Size)
+                  + ((choose(day, 0)*choose(swing,sample)*choose(night,0))/Size)
+                  + ((choose(day, 0)*choose(swing,0)*choose(night,sample))/Size), 4)
+```
+
+**d)** Find the probability that at least one of the shifts will be unrepresented in the sample of  6
+  workers. Round your answer to four decimal places. Save your answer as P_NoneOfOneShift.
+
+Hint: We want to solve  P(B1UB2UB3). To solve this, it may help to make a venn diagram for these events. Make sure you don't overcount the overlapping areas of this venn diagram!
+
+
+```{r}
+# prob_day_unrepresented <- choose(day, 6) / Size
+# prob_swing_unrepresented <- choose(swing, 6) / Size
+# prob_night_unrepresented <- choose(night, 6) / Size
+# 
+# prob_two_shifts_unrepresented <- 3 * choose(day + swing, 6) / Size
+# 
+# prob_all_shifts_unrepresented <- 0
+# 
+# P_NoneOfOneShift = round(1-(prob_day_unrepresented + prob_swing_unrepresented + prob_night_unrepresented - prob_two_shifts_unrepresented + prob_all_shifts_unrepresented), 4)
+P_NoneOfOneShift = 0
+```
