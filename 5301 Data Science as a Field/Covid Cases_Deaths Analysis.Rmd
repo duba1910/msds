@@ -5,7 +5,7 @@ date: "`r Sys.Date()`"
 output: pdf_document
 ---
 
-Intro: The 
+Intro: In this report, we delve into a comprehensive analysis of COVID-19 deaths and cases using data sourced from Johns Hopkins University. The COVID-19 pandemic has undoubtedly left an indelible mark on global health, necessitating a meticulous examination of the data to discern patterns, trends, and potential insights. By scrutinizing the information provided by Johns Hopkins, we aim to uncover key metrics, regional variations, and correlations between cases and fatalities. Through this exploration, we strive to contribute valuable perspectives to the ongoing discourse surrounding the pandemic, aiding in a deeper understanding of its impact on public health worldwide.
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, warning=FALSE)
