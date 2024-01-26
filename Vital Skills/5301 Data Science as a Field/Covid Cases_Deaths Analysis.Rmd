@@ -1,6 +1,5 @@
 ---
-title: "Week 3 - Covid Analysis"
-author: "Dustin Baellow"
+title: "Covid Analysis"
 date: "`r Sys.Date()`"
 output: pdf_document
 ---
@@ -263,33 +262,32 @@ us_state_totals <- us_by_state %>%
   filter(cases > 0, population > 0)
 ```
 
-Step 16: Just to make sure the data looks ok, we'll look at the states with the smallest deaths per thousand. 
+Step 16: Just to make sure the data looks ok, we'll look at the states with the smallest deaths per thousand.
 
 ```{r slice_min_state_totals}
 us_state_totals %>%
   slice_min(deaths_per_thou, n = 10) %>%
   select(deaths_per_thou, cases_per_thou, everything())
-```  
+```
 
-Step 17: We can also look at the largest states by deaths per thousand. 
+Step 17: We can also look at the largest states by deaths per thousand.
 
 ```{r slice_max_state_totals}
 us_state_totals %>% 
   slice_max(deaths_per_thou, n = 10)%>%
   select(deaths_per_thou, cases_per_thou, everything())
-```  
+```
 
-Step 18: Now we can model the data. I chose a linear model to see how the well my deaths per thousand are predicted by the cases per thousand. The P Value is super low which is great, but the rsquared is not too high. 
-
+Step 18: Now we can model the data. I chose a linear model to see how the well my deaths per thousand are predicted by the cases per thousand. The P Value is super low which is great, but the rsquared is not too high.
 
 ```{r linear_model}
 mod <- lm(deaths_per_thou ~ cases_per_thou, data = us_state_totals)
 summary(mod)
 ```
+
 Step 19: Lets graph it and see what it looks like. The blue dots (the actuals) do go up and to the right like the red dots (prediction), but there are a lot of variance and residuals. Comparing to the videos in class from early 2021, I would attribute this a lot to the prevalence of vaccinations and treatments. As cases went up early in the pandemic, deaths followed closely behind because there was no treatments and nobody was vaccinated. But now, vaccination rates are high and the treatments are readily available, so getting infected does not mean death.
 
-
-``` {r graph_linear_model}
+```{r graph_linear_model}
 us_state_totals_w_pred <-
   us_state_totals %>% mutate(pred = predict(mod))
 us_state_totals_w_pred %>%
@@ -298,7 +296,4 @@ us_state_totals_w_pred %>%
   geom_point(aes(x = cases_per_thou, y = pred), color = "red")
 ```
 
-
-Final thoughts - bias reduction: As we dive into the COVID-19 data from Johns Hopkins, it's important to know the variables we're looking at—total cases, deaths per 1000, new cases—are influenced by personal perspectives. To tackle this bias, I'm committed to shaking things up a bit, exploring different angles, and questioning my initial assumptions. Biases are part of the game, but being aware of them and actively working to see things from various viewpoints is the name of the data analysis game.
-
-
+Final thoughts - bias reduction: As we dive into the COVID-19 data from Johns Hopkins, it's important to know the variables we're looking at---total cases, deaths per 1000, new cases---are influenced by personal perspectives. To tackle this bias, I'm committed to shaking things up a bit, exploring different angles, and questioning my initial assumptions. Biases are part of the game, but being aware of them and actively working to see things from various viewpoints is the name of the data analysis game.

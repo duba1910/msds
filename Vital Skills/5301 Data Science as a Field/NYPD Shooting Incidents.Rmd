@@ -1,6 +1,6 @@
 ---
 title: "NYPD Shooting Incident Analysis"
-author: "Dustin Baellow"
+author: "duba1910"
 date: "`r Sys.Date()`"
 output: pdf_document
 ---
@@ -8,18 +8,23 @@ output: pdf_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
-## Intro:
+
+#### Intro:
 
 As concerns around gun violence escalate, we're delving into the NYPD Shooting Incident data to crunch the numbers and uncover patterns. The goal here is to get a grip on what's happening, without getting bogged down in the larger societal debate. By sifting through the data, our aim is to spotlight trends and relationships that can be useful for law enforcement strategies. This report cuts to the chase, focusing on the nitty-gritty of the NYPD Shooting Incident data to provide insights that can help shape practical policies and tactics.
 
-Step 1: Install `tidyverse` and `lubridate` which are the packages I'll need to preform my analysis
+#### Step 1
+
+Install `tidyverse` and `lubridate` which are the packages I'll need to preform my analysis
 
 ```{r install_packages, message = FALSE}
 library(tidyverse)
 library(lubridate)
 ```
 
-Step 2: Read the data
+#### Step 2
+
+Read the data
 
 ```{r read_csv, message = FALSE}
 shooting_incident <-
@@ -28,26 +33,34 @@ shooting_incident <-
   )
 ```
 
-Step 3: Check out first 6 rows
+#### Step 3
+
+Check out first 6 rows
 
 ```{r head}
 head(shooting_incident)
 ```
 
-Step 4: Lets take a look at the summary of the dataframe
+#### Step 4
+
+Lets take a look at the summary of the dataframe
 
 ```{r summary}
 summary(shooting_incident)
 ```
 
-Step 5: Looks like the `OCCUR_DATE` is a character, lets try to change it to a date in a new column called `OCCUR_DATE_LUBRIDATE`
+#### Step 5
+
+Looks like the `OCCUR_DATE` is a character, lets try to change it to a date in a new column called `OCCUR_DATE_LUBRIDATE`
 
 ```{r lubridate_occur_date}
 shooting_incident <- shooting_incident %>%
   mutate(OCCUR_DATE_LUBRIDATE = mdy(OCCUR_DATE)) 
 ```
 
-Step 6: Confirm the date changes worked
+#### Step 6
+
+Confirm the date changes worked
 
 ```{r compare_dates}
 summary(shooting_incident$OCCUR_DATE)
@@ -64,6 +77,7 @@ shooting_incident <- shooting_incident %>%
 ```
 
 Step 8: take a look to see how the `VIC_AGE_GROUP`s are allocated
+
 ```{r age_group_summary}
 shooting_incident %>%
   group_by(VIC_AGE_GROUP) %>%
@@ -86,6 +100,7 @@ shooting_incident %>%
   summarise(Total = n()) %>%
   arrange(desc(Total))
 ```
+
 Step 11: I think I'll want to sort them as well, so lets rename them
 
 ```{r change_vic_group_names}
@@ -113,7 +128,6 @@ shooting_incident %>%
 
 Step 13: Create a stacked bar chart
 
-
 ```{r stacked_bar_chart}
 ggplot(shooting_incident, aes(fill = VIC_AGE_GROUP, x = BORO)) +
   geom_bar(position = "stack", stat = "count") +
@@ -129,7 +143,6 @@ ggplot(shooting_incident, aes(fill = VIC_AGE_GROUP, x = BORO)) +
 ```
 
 Step 14: That's a little hard to understand since the populations of the borough are pretty varied. lets make a stacked percent bar char to see if that helps
-
 
 ```{r stacked_percent_bar_chart}
 shooting_incident %>%
@@ -153,7 +166,9 @@ contingency_table <-
   table(shooting_incident$BORO, shooting_incident$VIC_AGE_GROUP)
 print(contingency_table)
 ```
+
 Step 16: Now I can run the chi-squared test using `chisq.test`
+
 ```{r chi_squared }
 chi_squared_test <- chisq.test(contingency_table)
 print(chi_squared_test)
@@ -164,8 +179,8 @@ Step 17: The P value is super low! Lets dig into standardized residuals see wher
 ```{r standardized_residuals}
 chi_squared_test$stdres
 ```
-Step 18: Lets graph the standard residual. But first we need to turn it into a data frame, and change the column names
 
+Step 18: Lets graph the standard residual. But first we need to turn it into a data frame, and change the column names
 
 ```{r dataframe_std_res}
 std_res_df <- as.data.frame(chi_squared_test$stdres) %>%
@@ -173,7 +188,8 @@ std_res_df <- as.data.frame(chi_squared_test$stdres) %>%
          VIC_AGE_GROUP = Var2)
 ```
 
-Step 19: now we can graph it. We can no clearly see <18 year-olds in the Queens are less likely to be victims, while in the Bronx, anyone less than 24 is more likely. 
+Step 19: now we can graph it. We can no clearly see \<18 year-olds in the Queens are less likely to be victims, while in the Bronx, anyone less than 24 is more likely.
+
 ```{r graph_srd_res}
 ggplot(std_res_df, aes(x = Borough, y = Freq, fill = VIC_AGE_GROUP)) +
   geom_bar(stat = "identity", position = "dodge") +
@@ -184,4 +200,3 @@ ggplot(std_res_df, aes(x = Borough, y = Freq, fill = VIC_AGE_GROUP)) +
 ```
 
 Final thoughts - bias reduction: Recognizing the influence of personal perspectives is crucial in analyzing the NYPD Shooting Incident data. The choice to explore this dataset is not devoid of potential biases, as personal experiences and predispositions can shape the framing of questions and interpretation of results. Additionally, the selection of specific variables for scrutiny may inadvertently reflect certain viewpoints. To counteract these biases, a conscious effort will be made to approach the analysis with an open mind, considering alternative perspectives and remaining vigilant about the potential impact of preconceived notions on the interpretation of the data. The aim is to conduct a nuanced and fair analysis, acknowledging and mitigating biases to ensure the reliability and objectivity of the findings.
-
