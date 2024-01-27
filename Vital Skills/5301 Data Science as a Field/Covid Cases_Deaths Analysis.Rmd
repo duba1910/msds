@@ -1,23 +1,27 @@
 ---
 title: "Covid Analysis"
+author: "duba1910"
 date: "`r Sys.Date()`"
 output: pdf_document
 ---
 
-Intro: In this report, we delve into a comprehensive analysis of COVID-19 deaths and cases using data sourced from Johns Hopkins University. The COVID-19 pandemic has undoubtedly left an indelible mark on global health, necessitating a meticulous examination of the data to discern patterns, trends, and potential insights. By scrutinizing the information provided by Johns Hopkins, we aim to uncover key metrics, regional variations, and correlations between cases and fatalities. Through this exploration, we strive to contribute valuable perspectives to the ongoing discourse surrounding the pandemic, aiding in a deeper understanding of its impact on public health worldwide.
+#### Intro
+The COVID-19 pandemic has undeniably reshaped the landscape of global health, leaving an indelible mark on societies worldwide. In this report, I embark on a thorough analysis of COVID-19 deaths and cases, drawing insights from data meticulously sourced from Johns Hopkins University. My objective is to unravel patterns, discern trends, and uncover potential insights within this vast dataset. Through a meticulous examination of information provided by Johns Hopkins, I aim to shed light on key metrics, regional variations, and correlations between cases and fatalities.
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, warning=FALSE)
 ```
 
-Step 1: Install `tidyverse` and `lubridate` which are the packages I'll need to preform my analysis
+#### Step 1
+Install `tidyverse` and `lubridate` which are the packages I'll need to preform my analysis
 
 ```{r install_packages, message = FALSE}
 library(tidyverse)
 library(lubridate)
 ```
 
-Step 2: Load in the data
+#### Step 2
+Load in the data
 
 ```{r load_in_data}
 url_in <-
@@ -35,7 +39,8 @@ file_names <-
 urls <- str_c(url_in, file_names)
 ```
 
-Step 3: Import the data using `read_csv`
+#### Step 3
+Import the data using `read_csv`
 
 ```{r import_data, message = FALSE}
 us_cases <- read_csv(urls[1])
@@ -48,7 +53,8 @@ uid <-
   )
 ```
 
-Step 5: Pivot the global data by date. Then join the cases and deaths tables together. Lastly, join with our UID table to get population.
+#### Step 4
+Pivot the global data by date. Then join the cases and deaths tables together. Lastly, join with our UID table to get population.
 
 ```{r tidy_global_data, message = FALSE}
 global_cases <- global_cases %>%
@@ -86,14 +92,16 @@ global <- global %>%
          Combined_Key)
 ```
 
-Step 6: Take a peek at the new global table
+#### Step 5
+Take a peek at the new global table to make sure it looks ok using `head` and `summary`
 
 ```{r global}
 summary(global)
 head(global)
 ```
 
-Step 7: Pivot the US data. Then join them together
+#### Step 6
+Pivot the US data. Then join them together
 
 ```{r tidy_us_data, message = FALSE}
 us_cases <- us_cases %>%
@@ -120,14 +128,16 @@ us <- us_cases %>%
   full_join (us_deaths) 
 ```
 
-Step 7: Take a peek at the new US table
+#### Step 7
+Take a peek at the new US table to make sure it looks ok using `head` and `summary`
 
 ```{r summary_us}
 summary(us)
 head(us)
 ```
 
-Step 8: Great a US by state table to get deaths per million
+#### Step 8
+Create a US by State table to get deaths per million
 
 ```{r us_by_state, message = FALSE}
 us_by_state <- us %>%
@@ -148,7 +158,8 @@ us_by_state <- us %>%
   ungroup()
 ```
 
-Step 9: create a us_totals table to get deaths per million in the entire country
+#### Step 9
+Create a us_totals table to get deaths per million in the entire country
 
 ```{r us_totals, message = FALSE}
 us_totals <- us_by_state %>%
@@ -168,7 +179,8 @@ us_totals <- us_by_state %>%
   ungroup()
 ```
 
-Step 10: Visualize the US totals to see how deaths and cases rose over time. We're using a log10 scale so the deaths and cases will not be too far apart. We find the deaths and cases rose very quickly through the first half of 2021, and seem to have leveled out since.
+#### Step 10
+Visualize the US totals to see how deaths and cases rose over time. We're using a log10 scale so the deaths and cases will not be too far apart. We find the deaths and cases rose very quickly through the first half of 2021, and seem to have leveled out since.
 
 ```{r vizualize_us_totals}
 us_totals %>%
@@ -184,7 +196,8 @@ us_totals %>%
   labs(title = "COVID19 in US", y = NULL)
 ```
 
-Step 11: Visualize the NY state totals. Since NY is the 4th largest state by population, the graph looks very similar to the US graph. But, we do notice a pretty significant (even with the log scale) bump in cases in the beginning of 2022 which is probably due to the Omicron variant.
+#### Step 11
+Visualize the NY state totals. Since NY is the 4th largest state by population, the graph looks very similar to the US graph. But, we do notice a pretty significant (even with the log scale) bump in cases in the beginning of 2022 which is probably due to the Omicron variant.
 
 ```{r vizualize_ny_totals}
 state <- "New York"
@@ -202,7 +215,8 @@ us_by_state %>%
   labs(title = str_c("COVID19 in ", state), y = NULL)
 ```
 
-Step 12: After a while, when the cases and deaths keep increasing, it's hard to comprehend what is happening daily. We can add two new columns in our tables to show the changes in cases and deaths from the previous day.
+#### Step 12
+After a while, when the cases and deaths keep increasing, it's hard to comprehend what is happening daily. We can add two new columns in our tables to show the changes in cases and deaths from the previous day.
 
 ```{r change_in_cases}
 us_by_state <- us_by_state %>%
@@ -213,7 +227,8 @@ us_totals <- us_totals %>%
          new_deaths = deaths - lag(deaths))
 ```
 
-Step 13: Now we can visualize the change in cases and deaths in the US. This now clearly shows the increase in cases at the end of 2022 due to Omicron. We can also see how the Omicron variant did not cause a similar increase in deaths.
+#### Step 13
+Now we can visualize the change in cases and deaths in the US. This now clearly shows the increase in cases at the end of 2022 due to Omicron. We can also see how the Omicron variant did not cause a similar increase in deaths.
 
 ```{r visualize_us_new_cases_deaths}
 us_totals %>%
@@ -229,7 +244,8 @@ us_totals %>%
   labs(title = "COVID19 in US", y = NULL)
 ```
 
-Step 14: Let's now visualize the california change in cases and deaths. Since it's a single state, the changes are more prevalent. We also start to see where there are no new deaths as we get in 2023
+#### Step 14
+Let's now visualize the California change in cases and deaths. Since it's a single state, the changes are more prevalent. We also start to see where there are no new deaths in a given day as we get in to 2023
 
 ```{r vizualize_ca_totals}
 state <- "California"
@@ -247,7 +263,8 @@ us_by_state %>%
   labs(title = str_c("COVID19 in ", state), y = NULL)
 ```
 
-Step 15: Now we can see which states have the most cases and deaths overall, and then look at the cases and deaths per thousand people
+#### Step 15
+Now we can create a us_state_totals table to see which states have the most cases and deaths overall. Then we can look at the cases and deaths per thousand people
 
 ```{r us_state_totals}
 us_state_totals <- us_by_state %>%
@@ -262,7 +279,8 @@ us_state_totals <- us_by_state %>%
   filter(cases > 0, population > 0)
 ```
 
-Step 16: Just to make sure the data looks ok, we'll look at the states with the smallest deaths per thousand.
+#### Step 16
+Just to make sure the data looks ok, we'll look at the states with the smallest deaths per thousand using `slice_min`
 
 ```{r slice_min_state_totals}
 us_state_totals %>%
@@ -270,7 +288,8 @@ us_state_totals %>%
   select(deaths_per_thou, cases_per_thou, everything())
 ```
 
-Step 17: We can also look at the largest states by deaths per thousand.
+#### Step 17
+We can also look at the largest states by deaths per thousand using `slice_max`
 
 ```{r slice_max_state_totals}
 us_state_totals %>% 
@@ -278,14 +297,16 @@ us_state_totals %>%
   select(deaths_per_thou, cases_per_thou, everything())
 ```
 
-Step 18: Now we can model the data. I chose a linear model to see how the well my deaths per thousand are predicted by the cases per thousand. The P Value is super low which is great, but the rsquared is not too high.
+#### Step 18
+Now we can model the data. I chose a linear model to see how the well my deaths per thousand are predicted by the cases per thousand. The P Value is super low which is great, but the rsquared is not too high.
 
 ```{r linear_model}
 mod <- lm(deaths_per_thou ~ cases_per_thou, data = us_state_totals)
 summary(mod)
 ```
 
-Step 19: Lets graph it and see what it looks like. The blue dots (the actuals) do go up and to the right like the red dots (prediction), but there are a lot of variance and residuals. Comparing to the videos in class from early 2021, I would attribute this a lot to the prevalence of vaccinations and treatments. As cases went up early in the pandemic, deaths followed closely behind because there was no treatments and nobody was vaccinated. But now, vaccination rates are high and the treatments are readily available, so getting infected does not mean death.
+#### Step 19
+Lets graph it and see what it looks like. The blue dots (the actuals) do go up and to the right like the red dots (prediction), but there are a lot of variance and residuals. Comparing to the videos in class from early 2021, I would attribute this a lot to the prevalence of vaccinations and treatments. As cases went up early in the pandemic, deaths followed closely behind because there was no treatments and nobody was vaccinated. But now, vaccination rates are high and the treatments are readily available, so getting infected does not mean death.
 
 ```{r graph_linear_model}
 us_state_totals_w_pred <-
@@ -296,4 +317,5 @@ us_state_totals_w_pred %>%
   geom_point(aes(x = cases_per_thou, y = pred), color = "red")
 ```
 
-Final thoughts - bias reduction: As we dive into the COVID-19 data from Johns Hopkins, it's important to know the variables we're looking at---total cases, deaths per 1000, new cases---are influenced by personal perspectives. To tackle this bias, I'm committed to shaking things up a bit, exploring different angles, and questioning my initial assumptions. Biases are part of the game, but being aware of them and actively working to see things from various viewpoints is the name of the data analysis game.
+#### Final thoughts - bias reduction
+As I delve into the realm of COVID-19 data from Johns Hopkins, it is imperative to acknowledge the inherent biases that may influence my interpretations. The variables under scrutiny, such as total cases, deaths per thousand, and new cases, are not immune to personal perspectives. To address potential biases, I commit to injecting diversity into my analyses, exploring different angles, and challenging my initial assumptions. While biases are an inevitable aspect of data analysis, my commitment to awareness and a multi-faceted approach aims to mitigate their impact. By actively seeking alternative viewpoints, I strive for a more nuanced and balanced understanding of the intricate facets within the data. In the pursuit of unraveling the narrative hidden in the numbers, bias reduction becomes an integral part of my data analysis journey.s
