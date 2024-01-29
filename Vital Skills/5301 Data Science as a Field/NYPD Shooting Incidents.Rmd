@@ -1,6 +1,6 @@
 ---
-title: "NYPD Shooting Incident Analysis"
-author: "duba1910"
+title: "NYPD Shooting Incident Data Report"
+author: 
 date: "`r Sys.Date()`"
 output: pdf_document
 ---

@@ -1,6 +1,6 @@
 ---
 title: "Covid Analysis"
-author: "duba1910"
+author: 
 date: "`r Sys.Date()`"
 output: pdf_document
 ---
