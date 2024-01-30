@@ -9,8 +9,11 @@ output: pdf_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+### Purpose
+Show core data science and R skills by importing, analyzing, and tidying the NYPD Shooting Incident data
+
 #### Intro
-As concerns regarding gun violence intensify, this exploration into the NYPD Shooting Incident data delves into the numerical landscape to unveil patterns and insights. The aim is to distill meaningful trends without delving into broader societal debates. This report zeros in on the core details of the NYPD Shooting Incident data, focusing on statistical analyses to illuminate trends and relationships.
+As concerns regarding gun violence intensify, I will explore the NYPD Shooting Incident data and delve into the numerical landscape to unveil patterns and insights. The aim is to distill meaningful trends without delving into broader societal debates. This report zeros in on the core details of the NYPD Shooting Incident data, focusing on statistical analyses to illuminate trends and relationships.
 
 #### Step 1
 Install `tidyverse` and `lubridate` which are the packages I'll need to preform my analysis
@@ -21,7 +24,7 @@ library(lubridate)
 ```
 
 #### Step 2
-Read the data
+Read the data using `read_csv`
 
 ```{r read_csv, message = FALSE}
 shooting_incident <-
@@ -31,14 +34,14 @@ shooting_incident <-
 ```
 
 #### Step 3
-Check out first 6 rows
+Check out first 6 rows using `head`. We are looking at incidents of shootings in the 5 boroughs of NYC. We have information surrounding the location, perp, and victims.
 
 ```{r head}
 head(shooting_incident)
 ```
 
 #### Step 4
-Lets take a look at the summary of the dataframe
+Lets take a look at the summary of the dataframe using `summary`
 
 ```{r summary}
 summary(shooting_incident)
@@ -116,7 +119,7 @@ shooting_incident <- shooting_incident %>%
 ```
 
 #### Step 12
-Check to make sure that looks better
+Check to make sure that looks better, now arranging by `VIC_AGE_GROUP`
 
 ```{r check_new_vic_alignments}
 shooting_incident %>%
@@ -126,7 +129,7 @@ shooting_incident %>%
 ```
 
 #### Step 13
-Create a stacked bar chart
+Let's create a stacked bar chart to see how the count is spread between the age groups in the different boroughs
 
 ```{r stacked_bar_chart}
 ggplot(shooting_incident, aes(fill = VIC_AGE_GROUP, x = BORO)) +
@@ -143,7 +146,7 @@ ggplot(shooting_incident, aes(fill = VIC_AGE_GROUP, x = BORO)) +
 ```
 
 #### Step 14
-That's a little hard to understand since the populations of the borough are pretty varied. lets make a stacked percent bar char to see if that helps
+That's a little hard to understand since the populations of the borough are pretty varied. We can make a stacked percent bar char to see if that helps
 
 ```{r stacked_percent_bar_chart}
 shooting_incident %>%
@@ -194,7 +197,7 @@ std_res_df <- as.data.frame(chi_squared_test$stdres) %>%
 ```
 
 #### Step 19
-Now we can graph it. We can no clearly see '\<18' year-olds in the Queens are less likely to be victims, while in the Bronx, anyone less than 24 is more likely.
+Now we can graph it. The outsized negative standard residual in '\<18' year-olds in Queens show they are less likely to be victims, while in the Bronx, the higher standard residual shows anyone less than 24 is more likely (and then the opposite for those aged 25-64).
 
 ```{r graph_srd_res}
 ggplot(std_res_df, aes(x = Borough, y = Freq, fill = VIC_AGE_GROUP)) +
@@ -205,4 +208,4 @@ ggplot(std_res_df, aes(x = Borough, y = Freq, fill = VIC_AGE_GROUP)) +
 ```
 
 #### Final thoughts - bias reduction
-In interpreting the NYPD Shooting Incident data, it's important to recognize and address potential biases introduced by personal perspectives. The exploration of this dataset may unintentionally reflect certain viewpoints, despite efforts to maintain objectivity. Vigilance is exercised in approaching the data with an open mind, considering alternative perspectives. The statistical analyses, including chi-squared analysis, uncover patterns and relationships; however, it's crucial to note that statistical significance may not always imply practical significance. Furthermore, limitations within the dataset, such as underreporting or misclassification, contribute to uncertainties, urging a cautious interpretation of results. This approach ensures a nuanced and fair analysis while being mindful of broader societal implications.
+In analyzing the NYPD Shooting Incident data, it's important to acknowledge potential biases despite efforts for objectivity. While statistical analyses, including chi-squared analysis, unveil patterns, it's crucial to note that statistical significance doesn't always translate practically. Inherent dataset limitations, such as underreporting and misclassification, introduce uncertainties, necessitating a cautious interpretation. Striving for a nuanced analysis, we are mindful of the broader societal implications within the complexities of the data.

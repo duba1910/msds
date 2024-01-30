@@ -5,8 +5,11 @@ date: "`r Sys.Date()`"
 output: pdf_document
 ---
 
+### Purpose
+Show core data science and R skills by importing, analyzing, and tidying the COVID data. The COVID data from Johns Hopkins shows deaths and cases by state and country by day. 
+
 #### Intro
-The COVID-19 pandemic has undeniably reshaped the landscape of global health, leaving an indelible mark on societies worldwide. In this report, I embark on a thorough analysis of COVID-19 deaths and cases, drawing insights from data meticulously sourced from Johns Hopkins University. My objective is to unravel patterns, discern trends, and uncover potential insights within this vast dataset. Through a meticulous examination of information provided by Johns Hopkins, I aim to shed light on key metrics, regional variations, and correlations between cases and fatalities.
+The COVID-19 pandemic has undeniably reshaped the landscape of global health, leaving an indelible mark on societies worldwide. In this report, I embark on a thorough analysis of COVID-19 deaths and cases, drawing insights from data meticulously sourced from Johns Hopkins University. My objective is to unravel patterns, discern trends, and uncover potential insights within this vast dataset. Through a meticulous examination of information provided by Johns Hopkins, I aim to shed light on key metrics, regional variations, and correlations between cases and deaths.
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, warning=FALSE)
@@ -318,4 +321,4 @@ us_state_totals_w_pred %>%
 ```
 
 #### Final thoughts - bias reduction
-As I delve into the realm of COVID-19 data from Johns Hopkins, it is imperative to acknowledge the inherent biases that may influence my interpretations. The variables under scrutiny, such as total cases, deaths per thousand, and new cases, are not immune to personal perspectives. To address potential biases, I commit to injecting diversity into my analyses, exploring different angles, and challenging my initial assumptions. While biases are an inevitable aspect of data analysis, my commitment to awareness and a multi-faceted approach aims to mitigate their impact. By actively seeking alternative viewpoints, I strive for a more nuanced and balanced understanding of the intricate facets within the data. In the pursuit of unraveling the narrative hidden in the numbers, bias reduction becomes an integral part of my data analysis journey.s
+As I delved into the realm of COVID-19 data from Johns Hopkins, I recognized the imperative need to acknowledge the inherent biases that could influence my interpretations. The variables under scrutiny, such as total cases, deaths per thousand, and new cases, were not immune to personal perspectives. To address potential biases, I committed to injecting diversity into my analyses, explored different angles, and challenged my initial assumptions. While biases were an inevitable aspect of data analysis, my commitment to awareness and a multi-faceted approach aimed to mitigate their impact. By actively seeking alternative viewpoints, I strived for a more nuanced and balanced understanding of the intricate facets within the data. In the pursuit of unraveling the narrative hidden in the numbers, bias reduction became an integral part of my data analysis journey.
