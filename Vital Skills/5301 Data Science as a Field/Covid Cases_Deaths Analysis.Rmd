@@ -16,11 +16,12 @@ knitr::opts_chunk$set(echo = TRUE, warning=FALSE)
 ```
 
 #### Step 1
-Install `tidyverse` and `lubridate` which are the packages I'll need to preform my analysis
+Install `tidyverse` and `lubridate` and `gridExtra` which are the packages I'll need to preform my analysis
 
 ```{r install_packages, message = FALSE}
 library(tidyverse)
 library(lubridate)
+library(gridExtra)
 ```
 
 #### Step 2
@@ -102,8 +103,42 @@ Take a peek at the new global table to make sure it looks ok using `head` and `s
 summary(global)
 head(global)
 ```
-
 #### Step 6
+create a global totals dataframe
+```{r global_totals, message = FALSE}
+global_totals <- global %>%
+  group_by (date) %>%
+  summarize (
+    cases = sum(cases),
+    deaths = sum(deaths))
+```
+
+#### Step 7
+Visualize the Global totals dataframe to see how deaths and cases rose over time. 
+
+```{r vizualize_global_totals}
+# Plot for cases
+plot_cases <- global %>%
+  ggplot(aes(x = date, y = cases)) +
+  geom_bar(stat = "identity", fill = "black") +
+  theme(legend.position = "bottom",
+        axis.text.x = element_text(angle = 90)) +
+  labs(title = "COVID19 Cases in the World", y = NULL)
+
+# Plot for deaths
+plot_deaths <- global %>%
+  ggplot(aes(x = date, y = deaths)) +
+  geom_bar(stat = "identity", fill = "green") +
+  theme(legend.position = "bottom",
+        axis.text.x = element_text(angle = 90)) +
+  labs(title = "COVID19 Deaths in the World", y = NULL)
+
+
+grid.arrange(plot_cases, plot_deaths, ncol = 2)
+
+```
+
+#### Step 8
 Pivot the US data. Then join them together
 
 ```{r tidy_us_data, message = FALSE}
@@ -131,7 +166,7 @@ us <- us_cases %>%
   full_join (us_deaths) 
 ```
 
-#### Step 7
+#### Step 9
 Take a peek at the new US table to make sure it looks ok using `head` and `summary`
 
 ```{r summary_us}
@@ -139,7 +174,7 @@ summary(us)
 head(us)
 ```
 
-#### Step 8
+#### Step 10
 Create a US by State table to get deaths per million
 
 ```{r us_by_state, message = FALSE}
@@ -161,7 +196,7 @@ us_by_state <- us %>%
   ungroup()
 ```
 
-#### Step 9
+#### Step 11
 Create a us_totals table to get deaths per million in the entire country
 
 ```{r us_totals, message = FALSE}
@@ -182,7 +217,7 @@ us_totals <- us_by_state %>%
   ungroup()
 ```
 
-#### Step 10
+#### Step 12
 Visualize the US totals to see how deaths and cases rose over time. We're using a log10 scale so the deaths and cases will not be too far apart. We find the deaths and cases rose very quickly through the first half of 2021, and seem to have leveled out since.
 
 ```{r vizualize_us_totals}
@@ -199,7 +234,7 @@ us_totals %>%
   labs(title = "COVID19 in US", y = NULL)
 ```
 
-#### Step 11
+#### Step 13
 Visualize the NY state totals. Since NY is the 4th largest state by population, the graph looks very similar to the US graph. But, we do notice a pretty significant (even with the log scale) bump in cases in the beginning of 2022 which is probably due to the Omicron variant.
 
 ```{r vizualize_ny_totals}
@@ -218,7 +253,7 @@ us_by_state %>%
   labs(title = str_c("COVID19 in ", state), y = NULL)
 ```
 
-#### Step 12
+#### Step 14
 After a while, when the cases and deaths keep increasing, it's hard to comprehend what is happening daily. We can add two new columns in our tables to show the changes in cases and deaths from the previous day.
 
 ```{r change_in_cases}
@@ -230,7 +265,7 @@ us_totals <- us_totals %>%
          new_deaths = deaths - lag(deaths))
 ```
 
-#### Step 13
+#### Step 15
 Now we can visualize the change in cases and deaths in the US. This now clearly shows the increase in cases at the end of 2022 due to Omicron. We can also see how the Omicron variant did not cause a similar increase in deaths.
 
 ```{r visualize_us_new_cases_deaths}
@@ -247,7 +282,7 @@ us_totals %>%
   labs(title = "COVID19 in US", y = NULL)
 ```
 
-#### Step 14
+#### Step 16
 Let's now visualize the California change in cases and deaths. Since it's a single state, the changes are more prevalent. We also start to see where there are no new deaths in a given day as we get in to 2023
 
 ```{r vizualize_ca_totals}
@@ -266,7 +301,7 @@ us_by_state %>%
   labs(title = str_c("COVID19 in ", state), y = NULL)
 ```
 
-#### Step 15
+#### Step 17
 Now we can create a us_state_totals table to see which states have the most cases and deaths overall. Then we can look at the cases and deaths per thousand people
 
 ```{r us_state_totals}
@@ -282,7 +317,7 @@ us_state_totals <- us_by_state %>%
   filter(cases > 0, population > 0)
 ```
 
-#### Step 16
+#### Step 18
 Just to make sure the data looks ok, we'll look at the states with the smallest deaths per thousand using `slice_min`
 
 ```{r slice_min_state_totals}
@@ -291,7 +326,7 @@ us_state_totals %>%
   select(deaths_per_thou, cases_per_thou, everything())
 ```
 
-#### Step 17
+#### Step 19
 We can also look at the largest states by deaths per thousand using `slice_max`
 
 ```{r slice_max_state_totals}
@@ -300,7 +335,7 @@ us_state_totals %>%
   select(deaths_per_thou, cases_per_thou, everything())
 ```
 
-#### Step 18
+#### Step 20
 Now we can model the data. I chose a linear model to see how the well my deaths per thousand are predicted by the cases per thousand. The P Value is super low which is great, but the rsquared is not too high.
 
 ```{r linear_model}
@@ -308,7 +343,7 @@ mod <- lm(deaths_per_thou ~ cases_per_thou, data = us_state_totals)
 summary(mod)
 ```
 
-#### Step 19
+#### Step 21
 Lets graph it and see what it looks like. The blue dots (the actuals) do go up and to the right like the red dots (prediction), but there are a lot of variance and residuals. Comparing to the videos in class from early 2021, I would attribute this a lot to the prevalence of vaccinations and treatments. As cases went up early in the pandemic, deaths followed closely behind because there was no treatments and nobody was vaccinated. But now, vaccination rates are high and the treatments are readily available, so getting infected does not mean death.
 
 ```{r graph_linear_model}
@@ -319,6 +354,11 @@ us_state_totals_w_pred %>%
   geom_point(aes(x = cases_per_thou, y = deaths_per_thou), color = "blue") +
   geom_point(aes(x = cases_per_thou, y = pred), color = "red")
 ```
+
+#### Final thoughts - conclusion
+This analysis delved into the intricate landscape of COVID-19 data from Johns Hopkins, striving to unravel both global and state-specific trends. The visualizations provided a vivid narrative, capturing pivotal moments such as the Omicron surge and showcasing the dynamic nature of the pandemic.
+
+By examining daily changes and employing linear modeling, we gained a deeper understanding of the evolving relationship between cases and deaths. The insights gleaned from state-specific analyses, including those of New York and California, added granularity to our comprehension of regional dynamics.
 
 #### Final thoughts - bias reduction
 As I delved into the realm of COVID-19 data from Johns Hopkins, I recognized the imperative need to acknowledge the inherent biases that could influence my interpretations. The variables under scrutiny, such as total cases, deaths per thousand, and new cases, were not immune to personal perspectives. To address potential biases, I committed to injecting diversity into my analyses, explored different angles, and challenged my initial assumptions. While biases were an inevitable aspect of data analysis, my commitment to awareness and a multi-faceted approach aimed to mitigate their impact. By actively seeking alternative viewpoints, I strived for a more nuanced and balanced understanding of the intricate facets within the data. In the pursuit of unraveling the narrative hidden in the numbers, bias reduction became an integral part of my data analysis journey.
