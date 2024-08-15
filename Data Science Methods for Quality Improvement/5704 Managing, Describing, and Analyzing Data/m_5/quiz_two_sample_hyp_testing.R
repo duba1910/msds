@@ -28,3 +28,30 @@ sample.size.mean.t.onesample(effect.size = deltamu
                              , alpha = alpha
                              , beta = alpha
                              , alternative = "two.sided")
+
+
+
+
+ro(t.test.twosample.independent.simple(sample.mean.g1 = 72
+                                       ,sample.variance.g1 = 15^2
+                                       ,sample.size.g1 = 12
+                                       ,sample.mean.g2 = 64
+                                       ,sample.variance.g2 = 19^2
+                                       ,sample.size.g2 = 15
+                                       ,conf.level = 0.95),6)
+
+
+ro(t.test.twosample.dependent.simple.meandiff(sample.mean.g1 = 3671
+                                              ,sample.mean.g2 = 4228
+                                              ,sample.variance.g1 = 246^2
+                                              ,sample.variance.g2 = 182^2
+                                              ,sample.size = 50
+                                              ,rho.estimate = 0.78),4)
+
+
+proportion.test.twosample.exact.simple(sample.proportion.g1 =  0.054
+                                       ,sample.size.g1 = 500
+                                       ,sample.proportion.g2 = 0.036
+                                       ,sample.size.g2 = 500
+                                       ,conf.level = 0.95)
+
